@@ -25,12 +25,23 @@ The output folder is *AutoMouseMover\bin*.
 
 ## Usage
 
-For basic usage, simply open the application, choose whether you want it to perform a left-click, and click the Start button while leaving the default settings.\
-Optionally (not necessary in most cases, added just for completeness), you can adjust the time interval in seconds and the number of pixels to move the cursor. Additionally, you can choose whether to minimize the application to the tray (recommended) and whether to display the tray icon. If the tray icon is hidden, the only way to close the application after starting it is through the Task Manager.\
-When minimized to the tray, you can reopen the application by double-clicking the icon. You can also close it directly by right-clicking the icon and selecting Close.\
-If you don’t want to see the cursor move visibly, select a small movement value. The default of 5 pixels should be sufficient (and barely noticeable, especially on modern high-resolution screens).\
-All settings are saved when the application is closed and automatically restored when it starts, so you don’t need to reconfigure them every time.\
-To start moving automatically when the application opens (e.g. from a shortcut in the Windows Startup folder), launch it with the `--autostart` argument: `AutoMouseMover.exe --autostart`.
+Open the application. The card at the top shows whether the mouse is being moved right now (*Active*), and until when. Use the button below it to pause or resume.\
+Minimizing the window hides it to the tray. Click the tray icon for quick actions: *Pause for 30 min*, *Pause until tomorrow*, *Resume*, *Open window* and *Close*. Double-click the icon to open the window.\
+Pauses are remembered, so a restart does not undo them.
+
+### Schedule
+
+Turn on *Follow work hours* and set your hours and days. Inside your hours the application starts moving by itself; outside them it stops. Pausing during work hours lasts until the next work day starts; resuming outside work hours keeps it running until you pause it.
+
+### Start with Windows
+
+Turn on *Start with Windows* to start the application in the tray when you sign in (no admin rights needed). If you previously added a shortcut to the Windows Startup folder, delete it. Only one copy of the application can run at a time.\
+The `--autostart` argument still works: it starts the application in the tray and, without a schedule, starts moving immediately.
+
+### Movement
+
+Optionally adjust how many idle seconds pass before the cursor is moved and by how many pixels (the default of 5 pixels is barely noticeable), and whether to left-click after moving.\
+All settings are saved automatically, including the language (globe icon in the title bar).
 
 ## License
 

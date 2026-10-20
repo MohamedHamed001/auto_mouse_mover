@@ -19,6 +19,9 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
     <UseWindowsForms>true</UseWindowsForms>
+    <UseWPF>true</UseWPF>
+    <!-- Single-file publish: also pack WPF's native DLLs into the exe, so the exe works on its own -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
   </PropertyGroup>
   <PropertyGroup>
@@ -34,6 +37,11 @@
     <RepositoryUrl>https://github.com/ebellocchia/auto_mouse_mover</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- App.xaml only holds resources: Program.Main stays the entry point -->
+    <ApplicationDefinition Remove="App.xaml" />
+    <Page Include="App.xaml" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="app_icon.ico" />
     <Content Include="app_icon_white.ico" />
@@ -66,6 +74,7 @@
     <InternalsVisibleTo Include="AutoMouseMover.Tests" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="WPF-UI" Version="4.3.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
   </ItemGroup>

@@ -1,6 +1,12 @@
 # Unreleased
 
 - Add the --autostart argument to start moving as soon as the application is opened
+- New window (WPF-UI) with a status card that follows the Windows light/dark theme
+- Work schedule: start and stop automatically at the start and end of work hours
+- Tray menu with pause for 30 minutes, pause until tomorrow and resume; pauses survive a restart
+- Start with Windows setting
+- Only one copy of the application can run at a time
+- The chosen language is remembered
 
 # 1.3.0
 

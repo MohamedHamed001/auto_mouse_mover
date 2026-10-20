@@ -96,6 +96,78 @@ namespace AutoMouseMover.Logic
             return action;
         }
 
+        // Get the first work-day start strictly after the given moment
+        // (DateTime.MaxValue if there are no working days)
+        public DateTime GetNextStart(DateTime cAfter)
+        {
+            return FindFirstStart(cAfter.Date, cAfter);
+        }
+
+        // Get the first work-day start on a later date than today, even if
+        // today's start has not been reached yet ("until tomorrow")
+        public DateTime GetStartOnNextWorkDay(DateTime cNow)
+        {
+            return FindFirstStart(cNow.Date.AddDays(1), cNow);
+        }
+
+        // Get today's end of working hours
+        public DateTime GetEndToday(DateTime cNow)
+        {
+            return cNow.Date + mEndTime;
+        }
+
+        #endregion
+
+        //
+        // Private methods
+        //
+        #region Private methods
+
+        // Scan the days starting from the given date and return the first
+        // work-day start that comes after the given moment. Eight days are
+        // enough to wrap around a whole week (e.g. one working day per week).
+        private DateTime FindFirstStart(DateTime cFirstDate, DateTime cAfter)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                var date = cFirstDate.AddDays(i);
+                if (mWorkDays.Contains(date.DayOfWeek))
+                {
+                    var start = date + mStartTime;
+                    if (start > cAfter)
+                    {
+                        return start;
+                    }
+                }
+            }
+            return DateTime.MaxValue;
+        }
+
+        #endregion
+
+        //
+        // Properties
+        //
+        #region Properties
+
+        // Start of working hours
+        public TimeSpan StartTime
+        {
+            get { return mStartTime; }
+        }
+
+        // End of working hours
+        public TimeSpan EndTime
+        {
+            get { return mEndTime; }
+        }
+
+        // Working days
+        public IReadOnlyCollection<DayOfWeek> WorkDays
+        {
+            get { return mWorkDays; }
+        }
+
         #endregion
     }
 }

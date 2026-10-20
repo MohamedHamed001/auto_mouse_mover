@@ -17,5 +17,26 @@
     <Setting Name="LeftClickAfterMoving" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
+    <Setting Name="ScheduleEnabled" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="WorkStartTime" Type="System.String" Scope="User">
+      <Value Profile="(Default)">09:00</Value>
+    </Setting>
+    <Setting Name="WorkEndTime" Type="System.String" Scope="User">
+      <Value Profile="(Default)">17:00</Value>
+    </Setting>
+    <Setting Name="WorkDays" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Monday,Tuesday,Wednesday,Thursday,Friday</Value>
+    </Setting>
+    <Setting Name="PausedUntil" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="Language" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="SettingsUpgradeRequired" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
