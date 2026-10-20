@@ -1,3 +1,10 @@
+# 2.0.1
+
+- Release workflow: pushing a v* tag runs the tests, builds AutoMouseMover.exe and attaches it to the release
+- An unexpected error no longer closes the app (it is logged and shown once)
+- The theme follows Windows even when the app started hidden in the tray
+- A saved pause that has already ended is cleared from the settings at startup
+
 # 2.0.0
 
 - Add the --autostart argument to start moving as soon as the application is opened

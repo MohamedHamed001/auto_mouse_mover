@@ -24,6 +24,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
+using AutoMouseMover.Utils;
 
 namespace AutoMouseMover
 {
@@ -35,6 +36,9 @@ namespace AutoMouseMover
         private const string SHOW_WINDOW_EVENT = @"Local\AutoMouseMover.ShowWindow";
         // Let any process bring a window to the foreground
         private const int ASFW_ANY = -1;
+
+        // Whether an unexpected error was already shown to the user
+        private static bool sErrorShown;
         // Command line switch to start in the tray and (without a schedule) start moving
         private const string AUTO_START_SWITCH = "--autostart";
 
@@ -74,6 +78,7 @@ namespace AutoMouseMover
                     // The app keeps running in the tray when the window is hidden;
                     // it only exits when the user closes it
                     app.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+                    app.DispatcherUnhandledException += App_DispatcherUnhandledException;
 
                     var window = new MainWindow(auto_start);
                     // With --autostart start hidden in the tray
@@ -101,6 +106,25 @@ namespace AutoMouseMover
                     var text = $"There was an error that caused the application to crash.\n\n{e}";
                     MessageBox.Show(text, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
+            }
+        }
+
+        // Unexpected error on the UI thread (e.g. the settings file is locked while
+        // saving, or the registry refuses a write). Closing the app would silently
+        // stop the mouse, so the error is logged, shown once, and the app keeps running.
+        private static void App_DispatcherUnhandledException(object sender,
+                                                             System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            e.Handled = true;
+            CrashLogger.Log($"Unhandled UI exception: {e.Exception}");
+
+            // Only the first error is shown: a failing timer would otherwise
+            // open a new message box every few seconds
+            if (!sErrorShown)
+            {
+                sErrorShown = true;
+                var text = $"Something went wrong, but Auto Mouse Mover keeps running.\n\n{e.Exception.Message}";
+                MessageBox.Show(text, "Auto Mouse Mover", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 

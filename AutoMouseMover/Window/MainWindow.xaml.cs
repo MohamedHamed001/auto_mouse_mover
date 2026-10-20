@@ -121,6 +121,9 @@ namespace AutoMouseMover
             mController = new MoverController();
             mController.Launch(mSettings.CreateSchedule(), mSettings.PausedUntil, cAutoStart, DateTime.Now);
             mController.StateChanged += Controller_StateChanged;
+            // Launch may have dropped a saved pause that already ended: save that
+            // now (the event above was not subscribed yet when Launch raised it)
+            SavePausedUntil();
 
             CreateDayButtons();
             FillControls();
@@ -307,8 +310,7 @@ namespace AutoMouseMover
         // Controller state changed: save the pause and redraw
         private void Controller_StateChanged(object sender, EventArgs e)
         {
-            mSettings.PausedUntil = mController.PausedUntil;
-            mSettings.Save();
+            SavePausedUntil();
             RefreshStatus();
         }
 
@@ -401,6 +403,13 @@ namespace AutoMouseMover
         //
         #region Private methods
 
+        // Save the pause, so it survives a restart
+        private void SavePausedUntil()
+        {
+            mSettings.PausedUntil = mController.PausedUntil;
+            mSettings.Save();
+        }
+
         // Run an action on the UI thread.
         // SystemEvents handlers are raised on a background thread, so no WPF
         // control or timer may be touched directly from them.
@@ -416,11 +425,24 @@ namespace AutoMouseMover
         // Follow the Windows light/dark theme, now and when it changes
         private void ApplySystemTheme()
         {
+            ApplyCurrentSystemTheme();
+            // The watcher needs the window's native handle, which only exists once
+            // the window is shown (with --autostart that may be much later)
+            SourceInitialized += (sender, e) => SystemThemeWatcher.Watch(this);
+        }
+
+        // Apply the current Windows theme if it differs from the app's.
+        // Also called before showing the window or the tray menu, so they are right
+        // even if the theme changed while the app was hidden in the tray.
+        private void ApplyCurrentSystemTheme()
+        {
             var theme = (ApplicationThemeManager.GetSystemTheme() == SystemTheme.Dark)
                 ? ApplicationTheme.Dark
                 : ApplicationTheme.Light;
-            ApplicationThemeManager.Apply(theme, Wpf.Ui.Controls.WindowBackdropType.Mica, true);
-            SystemThemeWatcher.Watch(this);
+            if (ApplicationThemeManager.GetAppTheme() != theme)
+            {
+                ApplicationThemeManager.Apply(theme, Wpf.Ui.Controls.WindowBackdropType.Mica, true);
+            }
         }
 
         // Create the timers
@@ -449,6 +471,8 @@ namespace AutoMouseMover
                 Icon = System.Drawing.Icon.ExtractAssociatedIcon(Environment.ProcessPath),
                 Visible = true,
             };
+            // Make sure the icon disappears even if the app ends because of an error
+            AppDomain.CurrentDomain.ProcessExit += (sender, e) => mTrayIcon.Dispose();
             mTrayIcon.MouseClick += TrayIcon_MouseClick;
             mTrayIcon.MouseDoubleClick += TrayIcon_MouseDoubleClick;
 
@@ -459,6 +483,7 @@ namespace AutoMouseMover
         // Rebuild the tray menu for the current state and show it
         private void ShowTrayMenu()
         {
+            ApplyCurrentSystemTheme();
             var status = mController.GetStatus(DateTime.Now);
 
             mTrayMenu.Items.Clear();
@@ -496,6 +521,7 @@ namespace AutoMouseMover
         // Show the main window (from the tray, or when the exe is opened again)
         public void ShowMainWindow()
         {
+            ApplyCurrentSystemTheme();
             Show();
             WindowState = WindowState.Normal;
             Activate();
