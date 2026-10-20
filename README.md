@@ -1,47 +1,71 @@
 # Automatic Mouse Mover
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://raw.githubusercontent.com/ebellocchia/auto_mouse_mover/master/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/MohamedHamed001/auto_mouse_mover)](https://github.com/MohamedHamed001/auto_mouse_mover/releases/latest)
 
-## Introduction
+A small Windows tray app that keeps your PC "active" by nudging the mouse cursor while you're away: no screen lock, no "Away" status in chat apps, and it never gets in your way while you're working.
 
-This small GUI application simulates periodic user input by automatically moving the mouse cursor. It is written in C#.\
-It may seem useless at first glance, but I often use it on company laptops where the power options are locked and cannot be modified. My typical use case is running demos at fairs or in front of customers, when you cannot move the mouse and you don’t want the laptop to automatically lock the screen. This way, you don’t have to remember to move the mouse every now and then, and you can focus entirely on the demo.\
-Or, you can use it to keep alive some applications.
+<p align="center">
+  <img src="docs/images/main-window.png" alt="Main window while active" width="360">
+  &nbsp;&nbsp;
+  <img src="docs/images/main-window-paused.png" alt="Main window while paused" width="360">
+</p>
 
-## How it works
+This is a fork of [ebellocchia/auto_mouse_mover](https://github.com/ebellocchia/auto_mouse_mover). Version 2.0 adds a new window, a work schedule and a tray menu.
 
-Once started, the application is minimized to the tray bar and runs in background. The user can choose if showing the tray bar icon to make it completely invisible.\
-The application periodically checks the mouse position and simulates a mouse moving. In order to avoid disturbing the user if he's using the PC, the mouse is moved only if its position remained the same since the last time.\
-The cursor is moved back and forth, so it always remains in the same spot and does not go outside the screen.\
-After the mouse is moved, the application can also perform a left-click if needed to keep an application active.\
-In order to move the mouse automatically while in background, the application directly imports and calls the Windows APIs for sending input to the operating system and getting the cursor position, since there is no native function in C# for doing this (at least when I developed it).
+## Features
 
-The app supports multiple languages via localization (a different form is created for each language and automatically selected by Windows based on the system language). The currently supported languages are English and Italian, but more can be added easily.
+- **Status at a glance:** a card shows whether the mouse is being moved right now and until when.
+- **Work schedule:** starts by itself when your work hours begin and stops when they end, on the days you choose.
+- **Quick pauses from the tray:** pause for 30 minutes, pause until tomorrow, or resume. Pauses survive a restart.
+- **Start with Windows:** one switch, no admin rights needed.
+- **Never in your way:** the cursor only moves if you haven't touched it since the last check, and it moves back and forth on the same spot.
+- **Follows Windows light and dark theme.** English and Italian.
 
-## Building
+## Download
 
-Open the Visual Studio solution and build the project in either Debug or Release mode.\
-The output folder is *AutoMouseMover\bin*.
+Get `AutoMouseMover.exe` from the [latest release](https://github.com/MohamedHamed001/auto_mouse_mover/releases/latest).\
+It's a single file: no installer, no .NET install and no admin rights needed. Put it anywhere (for example `%LOCALAPPDATA%\AutoMouseMover`) and run it.
+
+The file is not code-signed, so Windows SmartScreen may warn on first run: choose *More info*, then *Run anyway*.
 
 ## Usage
 
 Open the application. The card at the top shows whether the mouse is being moved right now (*Active*), and until when. Use the button below it to pause or resume.\
-Minimizing the window hides it to the tray. Click the tray icon for quick actions: *Pause for 30 min*, *Pause until tomorrow*, *Resume*, *Open window* and *Close*. Double-click the icon to open the window.\
-Pauses are remembered, so a restart does not undo them.
+Minimizing the window hides it to the tray. Click the tray icon for quick actions: *Pause for 30 min*, *Pause until tomorrow*, *Resume*, *Open window* and *Close*. Double-click the icon, or open the exe again, to show the window.
 
 ### Schedule
 
-Turn on *Follow work hours* and set your hours and days. Inside your hours the application starts moving by itself; outside them it stops. Pausing during work hours lasts until the next work day starts; resuming outside work hours keeps it running until you pause it.
+Turn on *Follow work hours* and set your hours and days. Inside your hours the application starts moving by itself; outside them it stops.\
+Pausing during work hours lasts until the next work day starts; resuming outside work hours keeps it running until you pause it.
 
 ### Start with Windows
 
-Turn on *Start with Windows* to start the application in the tray when you sign in (no admin rights needed). If you previously added a shortcut to the Windows Startup folder, delete it. Only one copy of the application can run at a time.\
+Turn on *Start with Windows* to start the application in the tray when you sign in. If you previously added a shortcut to the Windows Startup folder, delete it. Only one copy of the application runs at a time.\
 The `--autostart` argument still works: it starts the application in the tray and, without a schedule, starts moving immediately.
 
 ### Movement
 
 Optionally adjust how many idle seconds pass before the cursor is moved and by how many pixels (the default of 5 pixels is barely noticeable), and whether to left-click after moving.\
-All settings are saved automatically, including the language (globe icon in the title bar).
+All settings are saved automatically, including the language (icon in the title bar).
+
+## How it works
+
+The application periodically checks the mouse position. If the cursor hasn't moved since the last check, it moves it a few pixels back and forth, so it always stays in the same spot and never leaves the screen. It can also left-click after moving, to keep a specific application active.\
+To move the mouse while running in the background, it calls the Windows input APIs directly.\
+Locking the PC or putting it to sleep pauses the movement; it resumes when you unlock.
+
+## Building
+
+Requires the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (Windows).
+
+```powershell
+dotnet test
+dotnet publish AutoMouseMover/AutoMouseMover.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+```
+
+The single-file exe is written to `AutoMouseMover/bin/Release/net8.0-windows/win-x64/publish/`.\
+To diagnose crashes, see [docs/Diagnosing-Crashes.md](docs/Diagnosing-Crashes.md).
 
 ## License
 

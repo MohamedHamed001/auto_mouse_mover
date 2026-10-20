@@ -1,4 +1,4 @@
-# Unreleased
+# 2.0.0
 
 - Add the --autostart argument to start moving as soon as the application is opened
 - New window (WPF-UI) with a status card that follows the Windows light/dark theme
