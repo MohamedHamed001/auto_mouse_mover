@@ -29,7 +29,8 @@ For basic usage, simply open the application, choose whether you want it to perf
 Optionally (not necessary in most cases, added just for completeness), you can adjust the time interval in seconds and the number of pixels to move the cursor. Additionally, you can choose whether to minimize the application to the tray (recommended) and whether to display the tray icon. If the tray icon is hidden, the only way to close the application after starting it is through the Task Manager.\
 When minimized to the tray, you can reopen the application by double-clicking the icon. You can also close it directly by right-clicking the icon and selecting Close.\
 If you don’t want to see the cursor move visibly, select a small movement value. The default of 5 pixels should be sufficient (and barely noticeable, especially on modern high-resolution screens).\
-All settings are saved when the application is closed and automatically restored when it starts, so you don’t need to reconfigure them every time.
+All settings are saved when the application is closed and automatically restored when it starts, so you don’t need to reconfigure them every time.\
+To start moving automatically when the application opens (e.g. from a shortcut in the Windows Startup folder), launch it with the `--autostart` argument: `AutoMouseMover.exe --autostart`.
 
 ## License
 

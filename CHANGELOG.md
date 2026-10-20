@@ -1,3 +1,7 @@
+# Unreleased
+
+- Add the --autostart argument to start moving as soon as the application is opened
+
 # 1.3.0
 
 - Default to English when the system language is not available

@@ -46,6 +46,8 @@ namespace AutoMouseMover
         private const string RES_NAME_SUFFIX = ".resources";
         // Language to be used when the system one is not available
         private const string DEFAULT_LANGUAGE = "en";
+        // Command line switch to start moving as soon as the application is opened
+        private const string AUTO_START_SWITCH = "--autostart";
 
         #endregion
 
@@ -178,6 +180,18 @@ namespace AutoMouseMover
         // Other events
         //
         #region Other events
+
+        // Form shown for the first time
+        // Auto start here and not in the constructor: the window must exist before
+        // it can be minimized to the tray bar
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            if (IsAutoStartRequested())
+            {
+                StartButton_Click(this, EventArgs.Empty);
+            }
+        }
 
         // Closing form event
         private void AutoMouseMoverForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -344,6 +358,19 @@ namespace AutoMouseMover
             {
                 // Same, but the window handle had already been destroyed
             }
+        }
+
+        // Get if the application was started with the auto start switch
+        private static bool IsAutoStartRequested()
+        {
+            foreach (var arg in Environment.GetCommandLineArgs())
+            {
+                if (string.Equals(arg, AUTO_START_SWITCH, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         // Load settings
