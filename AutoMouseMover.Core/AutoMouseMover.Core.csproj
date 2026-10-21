@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Shared rules (schedule, pauses) and settings formats, used by the Windows
+       and macOS apps. Plain net8.0: no Windows or macOS API in here. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>AutoMouseMover</RootNamespace>
+  </PropertyGroup>
+
+</Project>

@@ -207,4 +207,13 @@
   <data name="TrayClose" xml:space="preserve">
     <value>Close</value>
   </data>
+  <data name="ThemeSystem" xml:space="preserve">
+    <value>System theme</value>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="ThemeDark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
 </root>

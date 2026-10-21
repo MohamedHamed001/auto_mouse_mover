@@ -6,7 +6,7 @@ namespace AutoMouseMover.Logic
     //
     // Action requested by the work schedule
     //
-    enum eScheduleAction
+    public enum eScheduleAction
     {
         NONE,
         START,
@@ -17,7 +17,7 @@ namespace AutoMouseMover.Logic
     // Work schedule: tells when the mouse mover should start and stop by itself.
     // The current time is always passed in by the caller, so tests can use any time.
     //
-    class WorkSchedule
+    public class WorkSchedule
     {
         //
         // Members

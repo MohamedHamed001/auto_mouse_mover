@@ -1,0 +1,11 @@
+<Application
+    x:Class="AutoMouseMover.Mac.App"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Name="Auto Mouse Mover"
+    RequestedThemeVariant="Default">
+    <!-- Fluent theme; "Default" follows the macOS light/dark appearance -->
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+</Application>

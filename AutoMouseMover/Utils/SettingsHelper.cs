@@ -48,12 +48,6 @@ namespace AutoMouseMover.Utils
         {
             DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday,
         };
-        // Saved time format (hours and minutes, e.g. 09:00)
-        private const string TIME_FORMAT = @"hh\:mm";
-        // Accepted time inputs: two-digit or one-digit hours (09:00 or 9:00)
-        private static readonly string[] TIME_INPUT_FORMATS = { @"hh\:mm", @"h\:mm" };
-        // Saved date/time format (round-trip, e.g. 2026-10-20T09:00:00.0000000)
-        private const string DATE_TIME_FORMAT = "o";
 
         #endregion
 
@@ -80,6 +74,8 @@ namespace AutoMouseMover.Utils
         private DateTime? mPausedUntil;
         // Language name (e.g. "it"), empty for the system language
         private string mLanguage;
+        // Theme choice
+        private eThemeChoice mTheme;
 
         #endregion
 
@@ -111,11 +107,12 @@ namespace AutoMouseMover.Utils
             mLeftClickAfterMoving = Properties.Settings.Default.LeftClickAfterMoving;
             mScheduleEnabled = Properties.Settings.Default.ScheduleEnabled;
             // Damaged values fall back to the defaults instead of crashing
-            mWorkStartTime = ParseTime(Properties.Settings.Default.WorkStartTime) ?? DEF_WORK_START_TIME;
-            mWorkEndTime = ParseTime(Properties.Settings.Default.WorkEndTime) ?? DEF_WORK_END_TIME;
-            mWorkDays = ParseWorkDays(Properties.Settings.Default.WorkDays);
-            mPausedUntil = ParsePausedUntil(Properties.Settings.Default.PausedUntil);
+            mWorkStartTime = SettingsFormat.ParseTime(Properties.Settings.Default.WorkStartTime) ?? DEF_WORK_START_TIME;
+            mWorkEndTime = SettingsFormat.ParseTime(Properties.Settings.Default.WorkEndTime) ?? DEF_WORK_END_TIME;
+            mWorkDays = SettingsFormat.ParseWorkDays(Properties.Settings.Default.WorkDays);
+            mPausedUntil = SettingsFormat.ParsePausedUntil(Properties.Settings.Default.PausedUntil);
             mLanguage = Properties.Settings.Default.Language;
+            mTheme = SettingsFormat.ParseThemeChoice(Properties.Settings.Default.Theme);
         }
 
         // Load default settings
@@ -130,6 +127,7 @@ namespace AutoMouseMover.Utils
             mWorkDays = new List<DayOfWeek>(DEF_WORK_DAYS);
             mPausedUntil = null;
             mLanguage = "";
+            mTheme = eThemeChoice.SYSTEM;
         }
 
         // Save settings
@@ -139,11 +137,12 @@ namespace AutoMouseMover.Utils
             Properties.Settings.Default.MovingPixel = mMovingPixel;
             Properties.Settings.Default.LeftClickAfterMoving = mLeftClickAfterMoving;
             Properties.Settings.Default.ScheduleEnabled = mScheduleEnabled;
-            Properties.Settings.Default.WorkStartTime = FormatTime(mWorkStartTime);
-            Properties.Settings.Default.WorkEndTime = FormatTime(mWorkEndTime);
-            Properties.Settings.Default.WorkDays = FormatWorkDays(mWorkDays);
-            Properties.Settings.Default.PausedUntil = FormatPausedUntil(mPausedUntil);
+            Properties.Settings.Default.WorkStartTime = SettingsFormat.FormatTime(mWorkStartTime);
+            Properties.Settings.Default.WorkEndTime = SettingsFormat.FormatTime(mWorkEndTime);
+            Properties.Settings.Default.WorkDays = SettingsFormat.FormatWorkDays(mWorkDays);
+            Properties.Settings.Default.PausedUntil = SettingsFormat.FormatPausedUntil(mPausedUntil);
             Properties.Settings.Default.Language = mLanguage;
+            Properties.Settings.Default.Theme = SettingsFormat.FormatThemeChoice(mTheme);
             Properties.Settings.Default.Save();
         }
 
@@ -165,59 +164,6 @@ namespace AutoMouseMover.Utils
             {
                 return null;
             }
-        }
-
-        // Parse a saved list of day names (e.g. "Monday,Friday"), skipping unknown names
-        public static List<DayOfWeek> ParseWorkDays(string cText)
-        {
-            var days = new List<DayOfWeek>();
-            foreach (var part in cText.Split(','))
-            {
-                if (Enum.TryParse(part.Trim(), out DayOfWeek day) && Enum.IsDefined(day))
-                {
-                    days.Add(day);
-                }
-            }
-            return days;
-        }
-
-        // Format a list of days for saving (e.g. "Monday,Friday")
-        public static string FormatWorkDays(IEnumerable<DayOfWeek> cDays)
-        {
-            return string.Join(",", cDays);
-        }
-
-        // Parse a saved "paused until" moment (null if empty or not valid)
-        public static DateTime? ParsePausedUntil(string cText)
-        {
-            if (DateTime.TryParseExact(cText, DATE_TIME_FORMAT, CultureInfo.InvariantCulture,
-                                       DateTimeStyles.RoundtripKind, out DateTime value))
-            {
-                return value;
-            }
-            return null;
-        }
-
-        // Format a "paused until" moment for saving (empty if not paused)
-        public static string FormatPausedUntil(DateTime? cValue)
-        {
-            return (cValue == null) ? "" : cValue.Value.ToString(DATE_TIME_FORMAT, CultureInfo.InvariantCulture);
-        }
-
-        // Parse a time of day typed or saved as "09:00" or "9:00", null if not valid
-        public static TimeSpan? ParseTime(string cText)
-        {
-            if (TimeSpan.TryParseExact(cText, TIME_INPUT_FORMATS, CultureInfo.InvariantCulture, out TimeSpan value))
-            {
-                return value;
-            }
-            return null;
-        }
-
-        // Format a time of day for saving (e.g. "09:00")
-        public static string FormatTime(TimeSpan cValue)
-        {
-            return cValue.ToString(TIME_FORMAT, CultureInfo.InvariantCulture);
         }
 
         #endregion
@@ -281,6 +227,13 @@ namespace AutoMouseMover.Utils
         {
             get { return mPausedUntil; }
             set { mPausedUntil = value; }
+        }
+
+        // Theme choice property
+        public eThemeChoice Theme
+        {
+            get { return mTheme; }
+            set { mTheme = value; }
         }
 
         // Language property (e.g. "it"), empty for the system language

@@ -1,10 +1,14 @@
 # Release workflow: when a version tag (v1.2.3) is pushed, run the tests, build
-# the single-file AutoMouseMover.exe and attach it to the GitHub release for that tag.
+# the Windows exe and the macOS apps, and attach them all to one GitHub release.
 #
 # Usage:
-#   1. Bump <Version> in AutoMouseMover/AutoMouseMover.csproj and add a "# 1.2.3"
-#      section to CHANGELOG.md (it becomes the release notes)
+#   1. Bump <Version> in AutoMouseMover/AutoMouseMover.csproj and
+#      AutoMouseMover.Mac/AutoMouseMover.Mac.csproj, and add a "# 1.2.3" section
+#      to CHANGELOG.md (it becomes the release notes)
 #   2. git tag v1.2.3 && git push origin v1.2.3
+#
+# Jobs: windows and macos build in parallel; release runs only if both succeed,
+# so one failing test anywhere means nothing is released.
 name: Release
 
 on:
@@ -12,15 +16,10 @@ on:
     tags:
       - "v*"
 
-# The job needs write access to create the release and upload the exe
-permissions:
-  contents: write
-
 jobs:
-  release:
+  windows:
     # WPF and the Windows-only tests need a Windows runner
     runs-on: windows-latest
-
     steps:
       - name: Check out the code
         uses: actions/checkout@v4
@@ -30,44 +29,87 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Run the tests
+      - name: Run all tests
         run: dotnet test --configuration Release
 
       - name: Build the single-file exe
         run: dotnet publish AutoMouseMover/AutoMouseMover.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
 
-      - name: Create the release and attach the exe
-        shell: pwsh
+      - name: Keep the exe for the release job
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: AutoMouseMover/bin/Release/net8.0-windows/win-x64/publish/AutoMouseMover.exe
+
+  macos:
+    # codesign and ditto only exist on macOS
+    runs-on: macos-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Install the .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Run the shared and macOS tests
+        run: |
+          dotnet test AutoMouseMover.Core.Tests --configuration Release
+          dotnet test AutoMouseMover.Mac.Tests --configuration Release
+
+      - name: Build and zip the app for Apple Silicon and Intel
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          bash scripts/package-macos.sh osx-arm64 "$VERSION"
+          bash scripts/package-macos.sh osx-x64 "$VERSION"
+
+      - name: Keep the zips for the release job
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: artifacts/*.zip
+
+  release:
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    # Write access to create the release and upload the files
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the code (for CHANGELOG.md)
+        uses: actions/checkout@v4
+
+      - name: Collect the built files
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Create the release and attach the files
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = $env:GITHUB_REF_NAME
-          $exe = "AutoMouseMover/bin/Release/net8.0-windows/win-x64/publish/AutoMouseMover.exe"
-          $hash = (Get-FileHash $exe -Algorithm SHA256).Hash
+          TAG="$GITHUB_REF_NAME"
+          VERSION="${TAG#v}"
 
-          # Release notes: the CHANGELOG.md section whose heading matches the tag
-          # without the "v" (e.g. "# 2.0.1" for v2.0.1), up to the next heading
-          $version = $tag.TrimStart("v")
-          $notes = @()
-          $inSection = $false
-          foreach ($line in Get-Content CHANGELOG.md) {
-            if ($line -match '^#\s+(.+?)\s*$') {
-              $inSection = ($Matches[1] -eq $version)
-              continue
-            }
-            if ($inSection) { $notes += $line }
-          }
-          if ($notes.Count -eq 0) { $notes = @("Release $tag") }
-          $notes += ""
-          $notes += "SHA256 of AutoMouseMover.exe: ``$hash``"
-          $notes += ""
-          $notes += "The file is not code-signed, so Windows SmartScreen may warn on first run (More info, then Run anyway)."
-          $notes -join "`n" | Set-Content notes.md -Encoding utf8
+          # Release notes: the CHANGELOG.md section whose heading matches the
+          # version (e.g. "# 2.2.0" for v2.2.0), up to the next heading
+          awk -v ver="$VERSION" '{ sub(/\r$/, "") } /^# / { insec = ($2 == ver); next } insec' CHANGELOG.md > notes.md
+          if ! grep -q '[^[:space:]]' notes.md; then echo "Release $TAG" > notes.md; fi
+          {
+            echo
+            echo "SHA256:"
+            echo
+            (cd dist && sha256sum *) | sed 's/^/    /'
+            echo
+            echo "The files are not code-signed. Windows SmartScreen may warn on first run (More info, then Run anyway)."
+            echo "On macOS, see the README's macOS section for the first launch and the Accessibility permission."
+          } >> notes.md
 
-          # Re-running for an existing release (e.g. created by hand) replaces the exe
-          gh release view $tag *> $null
-          if ($LASTEXITCODE -eq 0) {
-            gh release upload $tag $exe --clobber
-          } else {
-            gh release create $tag $exe --title "Version $version" --notes-file notes.md
-          }
+          # Re-running for an existing release (e.g. created by hand) replaces the files
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* --title "Version $VERSION" --notes-file notes.md
+          fi

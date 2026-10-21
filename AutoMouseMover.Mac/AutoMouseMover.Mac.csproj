@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- macOS menu-bar app (Avalonia). Builds on any OS; the CoreGraphics calls only
+       run on macOS (see Platform/). -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>AutoMouseMover.Mac</RootNamespace>
+    <AssemblyName>AutoMouseMover.Mac</AssemblyName>
+    <Version>2.2.0</Version>
+    <Product>Auto Mouse Mover</Product>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.22" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AutoMouseMover.Core\AutoMouseMover.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Icons used by the window and the menu bar (avares://AutoMouseMover.Mac/Assets/...) -->
+    <AvaloniaResource Include="Assets\app-icon.png;Assets\menubar-icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Let the test project see internal classes -->
+    <InternalsVisibleTo Include="AutoMouseMover.Mac.Tests" />
+  </ItemGroup>
+
+</Project>

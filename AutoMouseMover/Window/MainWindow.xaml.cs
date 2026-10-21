@@ -112,7 +112,7 @@ namespace AutoMouseMover
             InitializeResource();
 
             InitializeComponent();
-            ApplySystemTheme();
+            ApplyTheme();
 
             mMover = new AutomaticMouseMover();
             mMover.Initialize(mSettings.MovingPixel, mSettings.LeftClickAfterMoving);
@@ -136,6 +136,8 @@ namespace AutoMouseMover
             SystemEvents.PowerModeChanged += OnPowerModeChanged;
             SystemEvents.SessionSwitch += OnSessionSwitch;
             SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
+            // Windows light/dark mode changes arrive as a user preference change
+            SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
         }
 
         #endregion
@@ -238,6 +240,10 @@ namespace AutoMouseMover
             var menu = new ContextMenu();
             menu.Items.Add(CreateMenuItem(GetText("MenuEnglish"), () => SetLanguage("en")));
             menu.Items.Add(CreateMenuItem(GetText("MenuItalian"), () => SetLanguage("it")));
+            menu.Items.Add(new Separator());
+            menu.Items.Add(CreateThemeMenuItem(GetText("ThemeSystem"), eThemeChoice.SYSTEM));
+            menu.Items.Add(CreateThemeMenuItem(GetText("ThemeLight"), eThemeChoice.LIGHT));
+            menu.Items.Add(CreateThemeMenuItem(GetText("ThemeDark"), eThemeChoice.DARK));
             menu.Items.Add(new Separator());
             menu.Items.Add(CreateMenuItem(GetText("MenuAbout"), () => new AboutForm().ShowDialog()));
             menu.PlacementTarget = LanguageButton;
@@ -385,6 +391,12 @@ namespace AutoMouseMover
             });
         }
 
+        // User preference changed: may be the Windows light/dark mode
+        private void OnUserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
+        {
+            RunOnUiThread(ApplyTheme);
+        }
+
         // Display settings changed (monitor docked/undocked, resolution or DPI change)
         private void OnDisplaySettingsChanged(object sender, EventArgs e)
         {
@@ -422,23 +434,27 @@ namespace AutoMouseMover
             Dispatcher.BeginInvoke(cAction);
         }
 
-        // Follow the Windows light/dark theme, now and when it changes
-        private void ApplySystemTheme()
+        // Apply the chosen theme (or the Windows one for "System") if it differs from
+        // the app's. Called at start, when Windows settings change, when the user picks
+        // a theme, and before showing the window or the tray menu.
+        private void ApplyTheme()
         {
-            ApplyCurrentSystemTheme();
-            // The watcher needs the window's native handle, which only exists once
-            // the window is shown (with --autostart that may be much later)
-            SourceInitialized += (sender, e) => SystemThemeWatcher.Watch(this);
-        }
+            ApplicationTheme theme;
+            switch (mSettings.Theme)
+            {
+                case eThemeChoice.LIGHT:
+                    theme = ApplicationTheme.Light;
+                    break;
+                case eThemeChoice.DARK:
+                    theme = ApplicationTheme.Dark;
+                    break;
+                default:
+                    theme = (ApplicationThemeManager.GetSystemTheme() == SystemTheme.Dark)
+                        ? ApplicationTheme.Dark
+                        : ApplicationTheme.Light;
+                    break;
+            }
 
-        // Apply the current Windows theme if it differs from the app's.
-        // Also called before showing the window or the tray menu, so they are right
-        // even if the theme changed while the app was hidden in the tray.
-        private void ApplyCurrentSystemTheme()
-        {
-            var theme = (ApplicationThemeManager.GetSystemTheme() == SystemTheme.Dark)
-                ? ApplicationTheme.Dark
-                : ApplicationTheme.Light;
             if (ApplicationThemeManager.GetAppTheme() != theme)
             {
                 ApplicationThemeManager.Apply(theme, Wpf.Ui.Controls.WindowBackdropType.Mica, true);
@@ -483,7 +499,7 @@ namespace AutoMouseMover
         // Rebuild the tray menu for the current state and show it
         private void ShowTrayMenu()
         {
-            ApplyCurrentSystemTheme();
+            ApplyTheme();
             var status = mController.GetStatus(DateTime.Now);
 
             mTrayMenu.Items.Clear();
@@ -518,10 +534,28 @@ namespace AutoMouseMover
             return item;
         }
 
+        // Create a theme menu item, ticked if it is the current choice
+        private MenuItem CreateThemeMenuItem(string cHeader, eThemeChoice cChoice)
+        {
+            var item = CreateMenuItem(cHeader, () => SetTheme(cChoice));
+            // Checkable so the menu style draws the tick (the menu is rebuilt on every open)
+            item.IsCheckable = true;
+            item.IsChecked = (mSettings.Theme == cChoice);
+            return item;
+        }
+
+        // Switch theme, save it and apply it
+        private void SetTheme(eThemeChoice cChoice)
+        {
+            mSettings.Theme = cChoice;
+            mSettings.Save();
+            ApplyTheme();
+        }
+
         // Show the main window (from the tray, or when the exe is opened again)
         public void ShowMainWindow()
         {
-            ApplyCurrentSystemTheme();
+            ApplyTheme();
             Show();
             WindowState = WindowState.Normal;
             Activate();
@@ -540,6 +574,7 @@ namespace AutoMouseMover
             SystemEvents.PowerModeChanged -= OnPowerModeChanged;
             SystemEvents.SessionSwitch -= OnSessionSwitch;
             SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged;
+            SystemEvents.UserPreferenceChanged -= OnUserPreferenceChanged;
 
             mMouseTimer.Stop();
             mScheduleTimer.Stop();
@@ -579,8 +614,8 @@ namespace AutoMouseMover
             mFillingControls = true;
 
             ScheduleToggle.IsChecked = mSettings.ScheduleEnabled;
-            StartTimeBox.Text = SettingsHelper.FormatTime(mSettings.WorkStartTime);
-            EndTimeBox.Text = SettingsHelper.FormatTime(mSettings.WorkEndTime);
+            StartTimeBox.Text = SettingsFormat.FormatTime(mSettings.WorkStartTime);
+            EndTimeBox.Text = SettingsFormat.FormatTime(mSettings.WorkEndTime);
             foreach (var pair in mDayButtons)
             {
                 pair.Value.IsChecked = mSettings.WorkDays.Contains(pair.Key);
@@ -602,8 +637,8 @@ namespace AutoMouseMover
                 return;
             }
 
-            var start = SettingsHelper.ParseTime(StartTimeBox.Text.Trim());
-            var end = SettingsHelper.ParseTime(EndTimeBox.Text.Trim());
+            var start = SettingsFormat.ParseTime(StartTimeBox.Text.Trim());
+            var end = SettingsFormat.ParseTime(EndTimeBox.Text.Trim());
             var days = new List<DayOfWeek>();
             foreach (var pair in mDayButtons)
             {
@@ -644,8 +679,8 @@ namespace AutoMouseMover
             }
 
             // Show what was understood (e.g. "9:00" becomes "09:00")
-            StartTimeBox.Text = SettingsHelper.FormatTime(start.Value);
-            EndTimeBox.Text = SettingsHelper.FormatTime(end.Value);
+            StartTimeBox.Text = SettingsFormat.FormatTime(start.Value);
+            EndTimeBox.Text = SettingsFormat.FormatTime(end.Value);
 
             mSettings.ScheduleEnabled = enabled;
             mSettings.WorkStartTime = start.Value;

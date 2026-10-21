@@ -27,7 +27,7 @@
   <PropertyGroup>
     <ApplicationIcon>app_icon.ico</ApplicationIcon>
     <Title>AutoMouseMover</Title>
-    <Version>2.0.1</Version>
+    <Version>2.2.0</Version>
     <Authors>Emanuele Bellocchia</Authors>
     <Product>Automatic Mouse Mover</Product>
     <Description>Simple automatic mouse mover application</Description>
@@ -75,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="WPF-UI" Version="4.3.0" />
+    <ProjectReference Include="..\AutoMouseMover.Core\AutoMouseMover.Core.csproj" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
   </ItemGroup>

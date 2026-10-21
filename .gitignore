@@ -4,3 +4,4 @@ obj
 .vs
 *.v12.suo
 *csproj.user
+artifacts

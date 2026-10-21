@@ -1,0 +1,76 @@
+<Window
+    x:Class="AutoMouseMover.Mac.MainWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Auto Mouse Mover"
+    Width="380"
+    CanResize="False"
+    Icon="/Assets/app-icon.png"
+    SizeToContent="Height"
+    WindowStartupLocation="CenterScreen">
+
+    <StackPanel Margin="16">
+        <!-- Header: app name and settings (language, theme, about) -->
+        <Grid ColumnDefinitions="*,Auto">
+            <TextBlock VerticalAlignment="Center" FontWeight="SemiBold" Text="Auto Mouse Mover" />
+            <Button x:Name="SettingsButton" Grid.Column="1" Click="SettingsButton_Click" Content="&#x2699;" />
+        </Grid>
+
+        <!-- Status card -->
+        <Border x:Name="StatusCard" Margin="0,8,0,0" Padding="16" CornerRadius="8">
+            <StackPanel HorizontalAlignment="Center">
+                <Ellipse x:Name="StatusDot" Width="12" Height="12" Margin="0,0,0,6" />
+                <TextBlock x:Name="StatusText" HorizontalAlignment="Center" FontSize="18" FontWeight="SemiBold" />
+                <TextBlock x:Name="StatusDetail" HorizontalAlignment="Center" Opacity="0.8" TextAlignment="Center" TextWrapping="Wrap" />
+                <Button x:Name="OpenSettingsButton" Margin="0,8,0,0" HorizontalAlignment="Center" Click="OpenSystemSettings_Click" IsVisible="False" />
+            </StackPanel>
+        </Border>
+
+        <TextBlock x:Name="TranslocationHint" Margin="0,8,0,0" Foreground="#D13438" IsVisible="False" TextWrapping="Wrap" />
+
+        <Button
+            x:Name="PauseResumeButton"
+            Margin="0,12,0,0"
+            HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Center"
+            Classes="accent"
+            Click="PauseResumeButton_Click" />
+
+        <!-- Schedule -->
+        <TextBlock x:Name="ScheduleHeader" Margin="0,20,0,6" FontWeight="SemiBold" />
+        <Border Padding="12" BorderBrush="#40808080" BorderThickness="1" CornerRadius="8">
+            <StackPanel>
+                <CheckBox x:Name="ScheduleToggle" Click="ScheduleToggle_Click" />
+                <Grid Margin="0,8,0,0" ColumnDefinitions="*,Auto">
+                    <TextBlock x:Name="WorkHoursLabel" VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <TextBox x:Name="StartTimeBox" Width="72" KeyDown="TimeBox_KeyDown" LostFocus="TimeBox_LostFocus" />
+                        <TextBlock Margin="6,0" VerticalAlignment="Center" Text="–" />
+                        <TextBox x:Name="EndTimeBox" Width="72" KeyDown="TimeBox_KeyDown" LostFocus="TimeBox_LostFocus" />
+                    </StackPanel>
+                </Grid>
+                <TextBlock x:Name="WorkDaysLabel" Margin="0,8,0,6" />
+                <!-- Seven day toggles, Monday first, filled in code -->
+                <UniformGrid x:Name="DaysPanel" Columns="7" />
+                <TextBlock x:Name="ScheduleError" Margin="0,8,0,0" Foreground="#D13438" IsVisible="False" TextWrapping="Wrap" />
+                <CheckBox x:Name="StartAtLoginToggle" Margin="0,8,0,0" Click="StartAtLoginToggle_Click" />
+            </StackPanel>
+        </Border>
+
+        <!-- Movement -->
+        <TextBlock x:Name="MovementHeader" Margin="0,20,0,6" FontWeight="SemiBold" />
+        <Border Padding="12" BorderBrush="#40808080" BorderThickness="1" CornerRadius="8">
+            <StackPanel>
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock x:Name="IntervalLabel" VerticalAlignment="Center" TextWrapping="Wrap" />
+                    <NumericUpDown x:Name="IntervalBox" Grid.Column="1" Width="120" FormatString="0" Increment="1" Maximum="30" Minimum="2" ValueChanged="IntervalBox_ValueChanged" />
+                </Grid>
+                <Grid Margin="0,8,0,0" ColumnDefinitions="*,Auto">
+                    <TextBlock x:Name="PixelLabel" VerticalAlignment="Center" />
+                    <NumericUpDown x:Name="PixelBox" Grid.Column="1" Width="120" FormatString="0" Increment="1" Maximum="200" Minimum="1" ValueChanged="PixelBox_ValueChanged" />
+                </Grid>
+                <CheckBox x:Name="ClickToggle" Margin="0,8,0,0" Click="ClickToggle_Click" />
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</Window>

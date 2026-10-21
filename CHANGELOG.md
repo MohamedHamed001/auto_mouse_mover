@@ -1,3 +1,13 @@
+# 2.2.0
+
+- macOS version: a menu-bar app (Apple Silicon and Intel) with the same status card, schedule, pauses, menu, language and theme as Windows
+- macOS: shows "Needs permission" with a shortcut to System Settings until the Accessibility permission is granted
+- macOS: Start at login (per-user LaunchAgent)
+- The schedule and pause rules move to a shared library used by both apps
+- Releases now include AutoMouseMover-macos-arm64.zip and AutoMouseMover-macos-x64.zip
+- Theme picker: System, Light or Dark, in the settings menu (gear icon in the title bar); saved with the other settings
+- The settings menu (language, theme, about) now uses a gear icon
+
 # 2.0.1
 
 - Release workflow: pushing a v* tag runs the tests, builds AutoMouseMover.exe and attaches it to the release

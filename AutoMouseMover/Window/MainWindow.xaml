@@ -23,7 +23,7 @@
                     Appearance="Transparent"
                     BorderThickness="0"
                     Click="LanguageButton_Click"
-                    Icon="{ui:SymbolIcon LocalLanguage24}" />
+                    Icon="{ui:SymbolIcon Settings24}" />
             </ui:TitleBar.TrailingContent>
         </ui:TitleBar>
 

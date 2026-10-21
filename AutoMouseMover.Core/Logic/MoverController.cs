@@ -6,7 +6,7 @@ namespace AutoMouseMover.Logic
     //
     // State shown to the user
     //
-    enum eMoverState
+    public enum eMoverState
     {
         ACTIVE,
         PAUSED,
@@ -17,7 +17,7 @@ namespace AutoMouseMover.Logic
     // What the status card shows: a state and, when known, a time
     // ("until 17:00", "starts Tue 09:00")
     //
-    class MoverStatus
+    public class MoverStatus
     {
         //
         // Members
@@ -73,7 +73,7 @@ namespace AutoMouseMover.Logic
     // The mouse moves only when it wants to run, is not paused and the session is not locked.
     // The current time is always passed in by the caller, so tests can use any time.
     //
-    class MoverController
+    public class MoverController
     {
         //
         // Members
